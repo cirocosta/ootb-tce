@@ -30,7 +30,7 @@ run_test() {
         local name=test-basic
 
         kapp deploy --yes -a $name -f ./01-test-basic.yaml
-        trap "kapp delete -a $name --yes" EXIT
+        # trap "kapp delete -a $name --yes" EXIT
 
         for sleep_duration in {15..1}; do
                 echo "sleeping ${sleep_duration}s"

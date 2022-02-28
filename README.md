@@ -13,9 +13,11 @@ flowchart RL
 
 [Cartographer]: https://cartographer.sh
 [Knative]: https://knative.dev/docs/
+[Tanzu CLI]: https://github.com/vmware-tanzu/tanzu-framework
 [`carto.run/ClusterSupplyChain`]: https://cartographer.sh/docs/v0.2.0/reference/workload/#clustersupplychain
 [`carto.run/Workload`]: https://cartographer.sh/docs/v0.2.0/reference/workload/#workload
 [`knative.dev/Service`]: https://github.com/knative/specs/blob/main/specs/serving/knative-api-specification-1.0.md#service
+[kapp-controller]: https://github.com/vmware-tanzu/carvel-kapp-controller
 [kpack]: https://github.com/pivotal/kpack
 [source-controller]: https://github.com/fluxcd/source-controller
 
@@ -40,12 +42,14 @@ flowchart RL
 ## Pre-requisites
 
 - [Cartographer]
-- [source-controller]
-- [kpack]
 - [Knative]
+- [Tanzu CLI]
+- [kapp-controller]
+- [kpack]
+- [source-controller]
 
 
-## Install
+## Installation
 
 0. Submit the Package and PackageMetadata objects to the cluster
 

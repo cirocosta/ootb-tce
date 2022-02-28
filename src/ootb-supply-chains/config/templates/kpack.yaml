@@ -13,13 +13,7 @@
 # limitations under the License.
 #
 #
-
-
-# `image` instantiates a `kpack/Image` object, responsible for ensuring that
-# there's a container image built and pushed to a container image registry
-# whenever there's either new source code, or its image builder gets na update.
-#
-#
+---
 apiVersion: carto.run/v1alpha1
 kind: ClusterImageTemplate
 metadata:
@@ -45,6 +39,15 @@ spec:
     #@   return data.values.params[key]
     #@ end
 
+    #@ def merge_labels(fixed_values):
+    #@   labels = {}
+    #@   if hasattr(data.values.workload.metadata, "labels"):
+    #@     labels.update(data.values.workload.metadata.labels)
+    #@   end
+    #@   labels.update(fixed_values)
+    #@   return labels
+    #@ end
+
     #@ def image():
     #@   return "/".join([
     #@    data.values.params.registry.server,
@@ -60,16 +63,13 @@ spec:
     kind: Image
     metadata:
       name: #@ data.values.workload.metadata.name
-      labels:
-        app.kubernetes.io/component: build
-        #@ if/end hasattr(data.values.workload.metadata, "labels") and hasattr(data.values.workload.metadata.labels, "app.kubernetes.io/part-of"):
-        app.kubernetes.io/part-of: #@ data.values.workload.metadata.labels["app.kubernetes.io/part-of"]
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "build" })
     spec:
+      serviceAccountName: #@ param("service_account")
       tag: #@ image()
-      serviceAccountName: #@ data.values.params.service_account
       builder:
         kind: ClusterBuilder
-        name: #@ data.values.params.cluster_builder
+        name: #@ param("cluster_builder")
       source:
         blob:
           url: #@ data.values.source.url

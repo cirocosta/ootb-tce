@@ -36,16 +36,21 @@ spec:
       default: #@ data.values.service_account
 
   resources:
+    - name: deliverable
+      templateRef:
+        kind: ClusterTemplate
+        name: deliverable
+
     - name: source-provider
+      selector:
+        matchFields:
+          - key: workload.spec.source.git.url
+            operator: Exists
       templateRef:
         kind: ClusterSourceTemplate
         name: git-repository
 
     - name: image-builder
-      selector:
-        matchFields:
-          - key: workload.spec.source.git.url
-            operator: Exists
       templateRef:
         kind: ClusterImageTemplate
         name: kpack-image

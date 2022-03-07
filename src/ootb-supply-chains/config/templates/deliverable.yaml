@@ -1,0 +1,13 @@
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterTemplate
+metadata:
+  name: deliverable
+spec:
+  template:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: $(workload.metadata.name)$
+    data:
+      foo: bar

@@ -37,9 +37,9 @@ subjects:
 apiVersion: carto.run/v1alpha1
 kind: Workload
 metadata:
-  name: test-basic
+  name: test-from-source
   labels:
-    app.kubernetes.io/part-of: test-basic
+    app.kubernetes.io/part-of: test-from-source
     apps.tanzu.vmware.com/workload-type: web
 spec:
   params:
@@ -53,3 +53,20 @@ spec:
       ref:
         branch: main
       url: https://github.com/kontinue/hello-world
+
+---
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  name: test-from-image
+  labels:
+    app.kubernetes.io/part-of: test-from-image
+    apps.tanzu.vmware.com/workload-type: web
+spec:
+  params:
+    - name: service_account
+      value: test-basic
+
+  serviceAccountName: test-basic
+
+  image: ghcr.io/cirocosta/cartographer@sha256:f721c277ea1eab25a87b938ba162f179c758bbd16d2d7c64b6a9c109f29e3687

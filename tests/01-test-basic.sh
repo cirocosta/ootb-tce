@@ -32,15 +32,15 @@ run_test() {
         kapp deploy --yes -a $name -f ./01-test-basic.yaml
         # trap "kapp delete -a $name --yes" EXIT
 
-        for sleep_duration in {15..1}; do
-                echo "sleeping ${sleep_duration}s"
-                sleep $sleep_duration
-                kubectl get app $name || continue
-                kubectl wait --for=condition=reconcilesucceeded app $name --timeout=10m && exit 0
-        done
+        # for sleep_duration in {15..1}; do
+        #         echo "sleeping ${sleep_duration}s"
+        #         sleep $sleep_duration
+        #         kubectl get app $name || continue
+        #         kubectl wait --for=condition=reconcilesucceeded app $name --timeout=10m && exit 0
+        # done
 
-        echo "failed :("
-        exit 1
+        # echo "failed :("
+        # exit 1
 }
 
 main "$@"

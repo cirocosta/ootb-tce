@@ -21,7 +21,7 @@ readonly ROOT=$(cd $(dirname $0)/.. && pwd)
 readonly CARTOGRAPHER_VERSION=0.2.2
 readonly CERT_MANAGER_VERSION=1.5.3
 readonly KAPP_CONTROLLER_VERSION=0.32.0
-readonly KNATIVE_SERVING_VERSION=0.26.0
+readonly KNATIVE_SERVING_VERSION=1.2.0
 readonly KPACK_VERSION=0.5.1
 readonly SECRETGEN_CONTROLLER_VERSION=0.6.0
 readonly SOURCE_CONTROLLER_VERSION=0.17.0
@@ -43,8 +43,9 @@ main() {
                         install_kapp_controller
                         install_secretgen_controller
 
-                        install_cartographer
+                        # install_cartographer
                         install_knative_serving
+                        install_kourier
                         install_kpack
                         install_source_controller
                         ;;
@@ -109,11 +110,24 @@ containerdConfigPatches:
 nodes:
   - role: control-plane
     image: $image
+    extraPortMappings:
+    - containerPort: 31080
+      hostPort: 80
+      protocol: TCP
+
 EOF
 
         kubectl config set-context --current --namespace default
         kubectl config get-contexts
         kubectl cluster-info
+}
+
+install_kourier() {
+        kubectl apply -f https://github.com/knative/net-kourier/releases/latest/download/kourier.yaml
+        kubectl patch configmap/config-network \
+          -n knative-serving \
+          --type merge \
+          -p '{"data":{"ingress.class":"kourier.ingress.networking.knative.dev"}}'
 }
 
 install_ootb() {
@@ -190,8 +204,8 @@ install_kpack() {
 install_knative_serving() {
         ytt --ignore-unknown-comments \
                 -f "./overlays/strip-resources.yaml" \
-                -f https://github.com/knative/serving/releases/download/v$KNATIVE_SERVING_VERSION/serving-core.yaml \
-                -f https://github.com/knative/serving/releases/download/v$KNATIVE_SERVING_VERSION/serving-crds.yaml |
+                -f https://github.com/knative/serving/releases/download/knative-v$KNATIVE_SERVING_VERSION/serving-core.yaml \
+                -f https://github.com/knative/serving/releases/download/knative-v$KNATIVE_SERVING_VERSION/serving-crds.yaml |
                 kapp deploy --yes -a knative-serving -f-
 }
 

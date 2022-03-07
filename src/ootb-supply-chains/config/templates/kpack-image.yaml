@@ -17,7 +17,7 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterImageTemplate
 metadata:
-  name: image
+  name: kpack-image
 spec:
   params:
     - name: service_account

@@ -17,63 +17,66 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterTemplate
 metadata:
-  name: app-deploy
+  name: app
 spec:
   params:
     - name: service_account
       default: default
 
-  template:
+  ytt: |
+    #@ load("@ytt:data", "data")
+    #@ load("@ytt:yaml", "yaml")
+
+    #@ def merge_labels(fixed_values):
+    #@   labels = {}
+    #@   if hasattr(data.values.workload.metadata, "labels"):
+    #@     labels.update(data.values.workload.metadata.labels)
+    #@   end
+    #@   labels.update(fixed_values)
+    #@   return labels
+    #@ end
+
+    #@ def/end knative_service():
+    ---
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "run", "carto.run/workload-name": data.values.workload.metadata.name })
+    spec:
+      template: #@ data.values.config
+
+    #@ def/end kapp_config():
+    ---
+    apiVersion: kapp.k14s.io/v1alpha1
+    kind: Config
+    rebaseRules:
+      - path: [metadata, annotations, serving.knative.dev/creator]
+        type: copy
+        sources: [new, existing]
+        resourceMatchers: &matchers
+          - apiVersionKindMatcher: {apiVersion: serving.knative.dev/v1, kind: Service}
+      - path: [metadata, annotations, serving.knative.dev/lastModifier]
+        type: copy
+        sources: [new, existing]
+        resourceMatchers: *matchers
+
+    ---
     apiVersion: kappctrl.k14s.io/v1alpha1
     kind: App
     metadata:
-      name: $(workload.metadata.name)$
+      name: #@ data.values.workload.metadata.name
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "deploy" })
     spec:
-      serviceAccountName: $(params.service_account)$
+      syncPeriod: 10m0s
+      serviceAccountName: #@ data.values.params.service_account
       fetch:
         - inline:
             paths:
-              manifest.yml: |
-                ---
-                apiVersion: kapp.k14s.io/v1alpha1
-                kind: Config
-                rebaseRules:
-                  - path:
-                      - metadata
-                      - annotations
-                      - serving.knative.dev/creator
-                    type: copy
-                    sources: [new, existing]
-                    resourceMatchers: &matchers
-                      - apiVersionKindMatcher:
-                          apiVersion: serving.knative.dev/v1
-                          kind: Service
-                  - path:
-                      - metadata
-                      - annotations
-                      - serving.knative.dev/lastModifier
-                    type: copy
-                    sources: [new, existing]
-                    resourceMatchers: *matchers
-
-                ---
-                apiVersion: serving.knative.dev/v1
-                kind: Service
-                metadata:
-                  name: $(workload.metadata.name)$
-                spec:
-                  template:
-                    metadata:
-                      annotations:
-                        autoscaling.knative.dev/minScale: "1"
-                    spec:
-                      serviceAccountName: $(params.service_account)$
-                      containers:
-                        - name: workload
-                          image: $(image)$
-                          securityContext:
-                            runAsUser: 1000
+              service.yml: #@ yaml.encode(knative_service())
+              kapp-config.yml: #@ yaml.encode(kapp_config())
       template:
         - ytt: {}
+        - kbld: {}
       deploy:
         - kapp: {}

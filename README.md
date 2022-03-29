@@ -11,13 +11,20 @@ workloads from source code to running Knative service in a cluster.
 
 The following configuration values can be set to customize the installation.
 
-| Value                 | Default             | Description                       |
-| --------------------- | ------------------- | --------------------------------- |
-| `registry.server`     | none **(required)** | hostname of the registry server where app images are pushed to |
-| `registry.repository` | none **(required)** | where the app images are stored in the image registry |
-| `service_account`     | `default`           | name of the serviceaccount to use by default in any children resources |
-| `cluster_builder`     | `default`           | name of the kpack clusterbuilder to use by default in any kpack image objects |
-| `git_implementation`  | `go-git`            | git implementation to use in flux gitrepository objects |
+* `registry.server` (default: none, **required**): hostname of the registry
+  server where app images are pushed to
+
+* `registry.repository` (default: none **required**):  where the app images are
+  stored in the image registry
+
+* `service_account` (default: `default`): name of the serviceaccount to use by
+  default in any children resources
+
+* `cluster_builder` (default: `default`): name of the kpack clusterbuilder to
+  use by default in any kpack image objects
+
+* `git_implementation` (default: `go-git`): git implementation to use in flux
+  gitrepository objects
 
 ## Installation
 
@@ -25,25 +32,24 @@ The Cartographer supply chains provided in this package require all
 resources of which objects they create to be previously installed in the
 cluster, those being:
 
-- **cartographer**, for choreographing kubernetes resources according to the
+* **cartographer**, for choreographing kubernetes resources according to the
   definition of the supply chains
 
-- **kapp-controller**, for providing both the packaging primitives for
+* **kapp-controller**, for providing both the packaging primitives for
   installing this package as well as the `App` CRD used by the supply chain to
   deploy the applications built according to the supply chains
 
-- **cartographer-conventions**, for applying conventions to the podtemplatespec
+* **cartographer-conventions**, for applying conventions to the podtemplatespec
   embeded in the final configuration generated for the application
 
-- **kpack**, for building container images out of source code
+* **kpack**, for building container images out of source code
 
-- **source-controller**, for keeping track of changes to a git repository and
+* **source-controller**, for keeping track of changes to a git repository and
   making source code available internally in the cluster
 
-- **knative serving**, for running the application
+* **knative serving**, for running the application
 
 With the dependencies met, proceed with the installation of this package:
-
 
 1. Create a file named `ootb-supply-chains.yaml` that specifies the
    corresponding values to the properties you want to change. For example:
@@ -119,17 +125,16 @@ To make use of it, we must first have in the same namespace as where the
 Workload is submitted to a couple of objects that the resources managed by the
 supplychain need so they can properly do their work:
 
-- **container image registry secret** for providing credentials to the kpack
+* **container image registry secret** for providing credentials to the kpack
   Image objects created so the container images created can be pushed to the
   desired registry
 
-- **serviceaccount** for providing means of representing inside Kubernete's
+* **serviceaccount** for providing means of representing inside Kubernete's
   role-based access control system the permissions that the Cartographer
   controller can make use of in favor of the Workload
 
-- **rolebinding** for binding roles to the serviceaccount that represents the
+* **rolebinding** for binding roles to the serviceaccount that represents the
   workload.
-
 
 #### Container Image Registry Secret
 
@@ -148,16 +153,16 @@ tanzu secret registry add registry-credentials \
 
 Where:
 
-- `REGISTRY-SERVER` is the URL of the registry.
+* `REGISTRY-SERVER` is the URL of the registry.
 
-    - For Dockerhub, this must be `https://index.docker.io/v1/`.
-      Specifically, it must have the leading `https://`, the `v1` path, and
-      the trailing `/`.
-    - For GCR, this is `gcr.io`. The username can be `_json_key` and the
-      password can be the JSON credentials you get from the GCP UI (under
-      `IAM -> Service Accounts` create an account or edit an existing one
-      and create a key with type JSON)
+  * For Dockerhub, this must be `https://index.docker.io/v1/`.
+    Specifically, it must have the leading `https://`, the `v1` path, and
+    the trailing `/`.
 
+  * For GCR, this is `gcr.io`. The username can be `_json_key` and the
+    password can be the JSON credentials you get from the GCP UI (under
+    `IAM -> Service Accounts` create an account or edit an existing one
+    and create a key with type JSON)
 
 note: alternatively, you can create the secret using `kubectl`:
 
@@ -167,7 +172,6 @@ kubectl create secret docker-registry registry-credentials \
   --docker-username=REGISTRY-USERNAME \
   --docker-password=REGISTRY-PASSWORD
 ```
-
 
 #### ServiceAccount
 
@@ -180,7 +184,6 @@ Here we also need to associate the previously created Secret
 also gather the credentials to pull/push images to/from the container image
 registry where the application should reside.
 
-
 ```yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -191,7 +194,6 @@ secrets:
 imagePullSecrets:
   - name: registry-credentials
 ```
-
 
 #### RoleBinding
 
@@ -225,6 +227,7 @@ tanzu apps workload create hello-world \
   --label app.kubernetes.io/part-of=tanzu-java-web-app \
   --type web
 ```
+
 ```console
 Create workload:
       1 + |---
@@ -246,7 +249,7 @@ Create workload:
 
 With the Workload submitted, you can follow the live logs using the `tanzu` cli:
 
-```
+```bash
 tanzu apps workload tail hello-world --since 10m
 ```
 
@@ -255,15 +258,15 @@ them being children objects of the Workload carrying the
 `app.kubernetes.io/part-of` label.
 
 ```scala
-NAMESPACE  NAME                                         READY  REASON              AGE
-default    Workload/hello-world                         True   Ready               8m8s
-default    ├─App/hello-world                            -                          7m15s
-default    ├─GitRepository/hello-world                  True   Succeeded           7m54s
-default    ├─Image/hello-world                          True                       7m53s
-default    │ ├─Build/hello-world-build-1                -                          7m53s
-default    │ ├─PersistentVolumeClaim/hello-world-cache  -                          7m53s
-default    │ └─SourceResolver/hello-world-source        True                       7m53s
-default    └─PodIntent/hello-world                      True   ConventionsApplied  7m16s
+NAMESPACE  NAME
+default    Workload/hello-world
+default    ├─App/hello-world
+default    ├─GitRepository/hello-world
+default    ├─Image/hello-world
+default    │ ├─Build/hello-world-build-1
+default    │ ├─PersistentVolumeClaim/hello-world-cache
+default    │ └─SourceResolver/hello-world-source
+default    └─PodIntent/hello-world
 ```
 
 Because we installed the package with its default service account name to
@@ -319,18 +322,18 @@ spec:
 In the `workload.spec.params` field we can specify a couple parameters to
 override the default behavior of certains components:
 
-- `service_account` (string): overrides the default name of the serviceaccount
+* `service_account` (string): overrides the default name of the serviceaccount
   (set in `ootb-supply-chain-values.yaml`) to pass on to the children objects.
 
-- `cluster_builder` (string): overrides the default name of the clusterbuilder
+* `cluster_builder` (string): overrides the default name of the clusterbuilder
   (set in `ootb-supply-chain-values.yaml`) to be used by the `kpack/Image`
   created by the supply chain.
 
-- `git_implementation` (string): overrides the default git implementation (set
+* `git_implementation` (string): overrides the default git implementation (set
   in `ootb-supply-chain-values.yaml`) to use for the GitRepository. Valid
   options: libgit2, go-git.
 
-- `git_secret` (string): name of a git secret in the same namespace as the
+* `git_secret` (string): name of a git secret in the same namespace as the
   Workload where the GitRepository object can find the credentials for pulling
   the git repository contents.
 

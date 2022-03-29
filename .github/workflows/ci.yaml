@@ -36,6 +36,11 @@ jobs:
           ./hack/ci/install-binaries.sh imgpkg kbld ytt kapp tanzu
 
 
+      - name: Check all YAML and README Markdown
+        run: |-
+          make check
+
+
       - name: Start cluster and registry, then install dependencies
         run: |-
           ./hack/cluster.sh start apply-dependencies

@@ -133,37 +133,41 @@ supplychain need so they can properly do their work:
 
 #### Container Image Registry Secret
 
-1. Create a secret with push credentials for the Docker registry that you plan
-   on publishing OCI images to with kpack.
+Using the Tanzu CLI, Create a secret with push credentials for the container
+image registry configured in installation of this package (i.e., for the server
+and repository described in `registry.server` and `registry.repository` of
+`ootb-supply-chain-values.yaml`):
 
-    ```shell
-    tanzu secret registry add registry-credentials \
-      --server REGISTRY-SERVER \
-      --username REGISTRY-USERNAME \
-      --password REGISTRY-PASSWORD \
-      --namespace YOUR-NAMESPACE
-    ```
+```bash
+tanzu secret registry add registry-credentials \
+  --server REGISTRY-SERVER \
+  --username REGISTRY-USERNAME \
+  --password REGISTRY-PASSWORD \
+  --namespace YOUR-NAMESPACE
+```
 
-    Alternatively, you can create the secret using `kubectl`:
+Where:
 
-    ```
-    kubectl create secret docker-registry registry-credentials \
-      --docker-server=REGISTRY-SERVER \
-      --docker-username=REGISTRY-USERNAME \
-      --docker-password=REGISTRY-PASSWORD
-    ```
+- `REGISTRY-SERVER` is the URL of the registry.
 
-    Where:
+    - For Dockerhub, this must be `https://index.docker.io/v1/`.
+      Specifically, it must have the leading `https://`, the `v1` path, and
+      the trailing `/`.
+    - For GCR, this is `gcr.io`. The username can be `_json_key` and the
+      password can be the JSON credentials you get from the GCP UI (under
+      `IAM -> Service Accounts` create an account or edit an existing one
+      and create a key with type JSON)
 
-    - `REGISTRY-SERVER` is the URL of the registry.
 
-        - For Dockerhub, this must be `https://index.docker.io/v1/`.
-          Specifically, it must have the leading `https://`, the `v1` path, and
-          the trailing `/`.
-        - For GCR, this is `gcr.io`. The username can be `_json_key` and the
-          password can be the JSON credentials you get from the GCP UI (under
-          `IAM -> Service Accounts` create an account or edit an existing one
-          and create a key with type JSON)
+note: alternatively, you can create the secret using `kubectl`:
+
+```bash
+kubectl create secret docker-registry registry-credentials \
+  --docker-server=REGISTRY-SERVER \
+  --docker-username=REGISTRY-USERNAME \
+  --docker-password=REGISTRY-PASSWORD
+```
+
 
 #### ServiceAccount
 

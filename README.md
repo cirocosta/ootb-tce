@@ -181,7 +181,7 @@ registry where the application should reside.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: hello-world
+  name: default
 secrets:
   - name: registry-credentials
 imagePullSecrets:
@@ -198,21 +198,56 @@ involved to act upon the objects managed by the supplychain
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: hello-world
+  name: ootb-supply-chain-source-to-url-workload
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: ootb-supply-chain-source-to-url-workload
 subjects:
   - kind: ServiceAccount
-    name: hello-world
+    name: default
 ```
 
 ### Workload
 
 With the namespace where the Workload will be submitted ready having all the
 three objects mentioned above (image secret, serviceaccount, and rolebinding),
-we can proceed with the creation of the Workload:
+we can proceed with the creation of the Workload.
+
+```bash
+tanzu apps workload create tanzu-java-web-app \
+  --git-branch main \
+  --git-repo https://github.com/sample-accelerators/tanzu-java-web-app
+  --label app.kubernetes.io/part-of=tanzu-java-web-app \
+  --type web
+```
+```console
+Create workload:
+      1 + |---
+      2 + |apiVersion: carto.run/v1alpha1
+      3 + |kind: Workload
+      4 + |metadata:
+      5 + |  labels:
+      6 + |    apps.tanzu.vmware.com/workload-type: web
+      7 + |    app.kubernetes.io/part-of: tanzu-java-web-app
+      8 + |  name: tanzu-java-web-app
+      9 + |  namespace: default
+     10 + |spec:
+     11 + |  source:
+     12 + |    git:
+     13 + |      ref:
+     14 + |        branch: main
+     15 + |      url: https://github.com/sample-accelerators/tanzu-java-web-app
+```
+
+Because we installed the package with its default service account name to
+`default` and in the sections above both attached the secret and bound the
+ClusterRole to the `default` serviceaccount, we don't need to tweak any extra
+fields in the spec.
+
+For reference, below you'll find the full definition of a Workload for this
+supply chain:
+
 
 ```yaml
 apiVersion: carto.run/v1alpha1
@@ -220,6 +255,10 @@ kind: Workload
 metadata:
   name: hello-world
   labels:
+    # the name of the higher-level applicaton that the objects involved
+    # in the supply chain should be part of (this label gets pushed down
+    # to them, including the final knative-service).
+    #
     app.kubernetes.io/part-of: hello-world
 
     # type of this workload. this is required in order to match this workload
@@ -233,6 +272,13 @@ spec:
   #
   serviceAccountName: hello-world
 
+  params:
+    # name of the serviceaccount to pass down to the objects that need one
+    # (e.g, kpack and kapp-ctrl/App).
+    #
+    - name: service_account
+      value: hello-world
+
   # details about where source code can be found in order to keep track of
   # changes to it so the resources managed by the supply chain can create new
   # builds and deployments whenever new revisions are found.
@@ -245,12 +291,24 @@ spec:
 
 #### Optional Parameters
 
+In the `workload.spec.params` field we can specify a couple parameters to
+override the default behavior of certains components:
+
 - `service_account` (string): overrides the default name of the serviceaccount
-  (set in `ootb-values.yaml`) to pass on to the children objects.
+  (set in `ootb-supply-chain-values.yaml`) to pass on to the children objects.
 
 - `cluster_builder` (string): overrides the default name of the clusterbuilder
-  (set in `ootb-values.yaml`) to be used by the `kpack/Image` created by the
-supply chain.
+  (set in `ootb-supply-chain-values.yaml`) to be used by the `kpack/Image`
+  created by the supply chain.
+
+- `git_implementation` (string): overrides the default git implementation (set
+  in `ootb-supply-chain-values.yaml`) to use for the GitRepository. Valid
+  options: libgit2, go-git.
+
+- `git_secret` (string): name of a git secret in the same namespace as the
+  Workload where the GitRepository object can find the credentials for pulling
+  the git repository contents.
+
 
 ## License
 

@@ -260,13 +260,13 @@ them being children objects of the Workload carrying the
 ```scala
 NAMESPACE  NAME
 default    Workload/hello-world
-default    ├─App/hello-world
 default    ├─GitRepository/hello-world
 default    ├─Image/hello-world
 default    │ ├─Build/hello-world-build-1
 default    │ ├─PersistentVolumeClaim/hello-world-cache
 default    │ └─SourceResolver/hello-world-source
-default    └─PodIntent/hello-world
+default    ├─PodIntent/hello-world
+default    └─App/hello-world
 ```
 
 Because we installed the package with its default service account name to

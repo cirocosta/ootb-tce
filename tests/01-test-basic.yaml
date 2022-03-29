@@ -17,6 +17,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: app
+  # ... secret for kpack image
 
 
 ---

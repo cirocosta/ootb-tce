@@ -27,7 +27,7 @@ main() {
 }
 
 run_test() {
-        local name=test-basic
+        local name=app
 
         kapp deploy --yes -a $name -f ./01-test-basic.yaml
 

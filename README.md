@@ -11,7 +11,7 @@ workloads from source code to running Knative service in a cluster.
 
 The following configuration values can be set to customize the installation.
 
-| Value                 | Default             | Description                       | 
+| Value                 | Default             | Description                       |
 | --------------------- | ------------------- | --------------------------------- |
 | `registry.server`     | none **(required)** | hostname of the registry server where app images are pushed to |
 | `registry.repository` | none **(required)** | where the app images are stored in the image registry |
@@ -57,7 +57,7 @@ With the dependencies met, proceed with the installation of this package:
       repository: REGISTRY-REPOSITORY
     ```
 
-1. With the configuration ready, install the package by running:
+1. Having the configuration ready, install the package by running:
 
     ```shell
     tanzu package install ootb-supply-chains \
@@ -68,7 +68,7 @@ With the dependencies met, proceed with the installation of this package:
 
     Example output:
 
-    ```
+    ```console
     \ Installing package 'ootb-supply-chains.community.tanzu.vmware.com'
     | Getting package metadata for 'ootb-supply-chains.community.tanzu.vmware.com'
     | Creating service account 'ootb-supply-chains-default-sa'
@@ -155,11 +155,11 @@ supplychain need so they can properly do their work:
 
     Where:
 
-    - `REGISTRY-SERVER` is the URL of the registry. 
+    - `REGISTRY-SERVER` is the URL of the registry.
 
         - For Dockerhub, this must be `https://index.docker.io/v1/`.
           Specifically, it must have the leading `https://`, the `v1` path, and
-          the trailing `/`. 
+          the trailing `/`.
         - For GCR, this is `gcr.io`. The username can be `_json_key` and the
           password can be the JSON credentials you get from the GCP UI (under
           `IAM -> Service Accounts` create an account or edit an existing one
@@ -215,7 +215,7 @@ three objects mentioned above (image secret, serviceaccount, and rolebinding),
 we can proceed with the creation of the Workload.
 
 ```bash
-tanzu apps workload create tanzu-java-web-app \
+tanzu apps workload create hello-world \
   --git-branch main \
   --git-repo https://github.com/sample-accelerators/tanzu-java-web-app
   --label app.kubernetes.io/part-of=tanzu-java-web-app \
@@ -229,8 +229,8 @@ Create workload:
       4 + |metadata:
       5 + |  labels:
       6 + |    apps.tanzu.vmware.com/workload-type: web
-      7 + |    app.kubernetes.io/part-of: tanzu-java-web-app
-      8 + |  name: tanzu-java-web-app
+      7 + |    app.kubernetes.io/part-of: hello-world
+      8 + |  name: hello-world
       9 + |  namespace: default
      10 + |spec:
      11 + |  source:
@@ -240,6 +240,28 @@ Create workload:
      15 + |      url: https://github.com/sample-accelerators/tanzu-java-web-app
 ```
 
+With the Workload submitted, you can follow the live logs using the `tanzu` cli:
+
+```
+tanzu apps workload tail hello-world --since 10m
+```
+
+Eventually, the resources described by the supply chain will be created, all of
+them being children objects of the Workload carrying the
+`app.kubernetes.io/part-of` label.
+
+```scala
+NAMESPACE  NAME                                         READY  REASON              AGE
+default    Workload/hello-world                         True   Ready               8m8s
+default    ├─App/hello-world                            -                          7m15s
+default    ├─GitRepository/hello-world                  True   Succeeded           7m54s
+default    ├─Image/hello-world                          True                       7m53s
+default    │ ├─Build/hello-world-build-1                -                          7m53s
+default    │ ├─PersistentVolumeClaim/hello-world-cache  -                          7m53s
+default    │ └─SourceResolver/hello-world-source        True                       7m53s
+default    └─PodIntent/hello-world                      True   ConventionsApplied  7m16s
+```
+
 Because we installed the package with its default service account name to
 `default` and in the sections above both attached the secret and bound the
 ClusterRole to the `default` serviceaccount, we don't need to tweak any extra
@@ -247,7 +269,6 @@ fields in the spec.
 
 For reference, below you'll find the full definition of a Workload for this
 supply chain:
-
 
 ```yaml
 apiVersion: carto.run/v1alpha1
@@ -270,14 +291,14 @@ spec:
   # privileges for creating/watching/etc the resources defined by the
   # supply chain.
   #
-  serviceAccountName: hello-world
+  serviceAccountName: default
 
   params:
     # name of the serviceaccount to pass down to the objects that need one
     # (e.g, kpack and kapp-ctrl/App).
     #
     - name: service_account
-      value: hello-world
+      value: default
 
   # details about where source code can be found in order to keep track of
   # changes to it so the resources managed by the supply chain can create new
@@ -309,10 +330,9 @@ override the default behavior of certains components:
   Workload where the GitRepository object can find the credentials for pulling
   the git repository contents.
 
-
 ## License
 
 Copyright 2022 VMware Inc. All rights reserved
 
-[GCR]: https://cloud.google.com/container-registry/ 
+[GCR]: https://cloud.google.com/container-registry/
 [DockerHub]: https://hub.docker.com/

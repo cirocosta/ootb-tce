@@ -87,9 +87,37 @@ With the dependencies met, proceed with the installation of this package:
 
 ### Source to URL Supply Chain
 
-To make use of the supply chain, we must first have in the same namespace as
-where the Workload is submitted to a couple of objects that the resources
-managed by the supplychain need so they can properly do their work:
+This Cartographer Supply Chain ties together a series of Kubernetes resources
+which drive a developer-provided Workload from source code to a running Knative
+Service in the Kubernetes cluster, updating it whenever changes occur to either
+source code or base image used for building the application.
+
+```mermaid
+flowchart RL
+  Kpack -- commit --> GitRepository
+  PodIntent -- container image --> Kpack
+  App -- podtemplatespec --> PodIntent
+
+  subgraph source-provider
+  GitRepository
+  end
+
+  subgraph image-builder
+  Kpack
+  end
+
+  subgraph conventions-applier
+  PodIntent
+  end
+
+  subgraph deployer
+  App
+  end
+```
+
+To make use of it, we must first have in the same namespace as where the
+Workload is submitted to a couple of objects that the resources managed by the
+supplychain need so they can properly do their work:
 
 - **container image registry secret** for providing credentials to the kpack
   Image objects created so the container images created can be pushed to the
@@ -180,7 +208,11 @@ subjects:
     name: hello-world
 ```
 
-### Workload creation
+### Workload
+
+With the namespace where the Workload will be submitted ready having all the
+three objects mentioned above (image secret, serviceaccount, and rolebinding),
+we can proceed with the creation of the Workload:
 
 ```yaml
 apiVersion: carto.run/v1alpha1

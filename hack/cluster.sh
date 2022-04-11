@@ -123,7 +123,7 @@ install_ootb() {
         local_registry=$(local_ip_addr):5000
 
         ytt --ignore-unknown-comments \
-                -f $ROOT/src/ootb-supply-chains \
+                -f $ROOT/src \
                 --data-value registry.server=$local_registry \
                 --data-value registry.repository=test |
                 kapp deploy --yes -a ootb -f-

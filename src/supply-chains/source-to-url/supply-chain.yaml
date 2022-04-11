@@ -34,6 +34,10 @@ spec:
       default: #@ data.values.cluster_builder
     - name: service_account
       default: #@ data.values.service_account
+    - name: git_implementation
+      default: #@ data.values.git_implementation
+    - name: git_secret
+      default: ""
 
   resources:
     - name: source-provider

@@ -58,6 +58,7 @@ spec:
     #@   ])
     #@ end
 
+    ---
     apiVersion: kpack.io/v1alpha2
     kind: Image
     metadata:

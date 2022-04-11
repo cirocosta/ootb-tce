@@ -18,14 +18,14 @@ set -o nounset
 
 readonly ROOT=$(cd $(dirname $0)/.. && pwd)
 
-readonly CARTOGRAPHER_VERSION=0.3.0-build.4
+readonly CARTOGRAPHER_VERSION=0.3.0
 readonly CERT_MANAGER_VERSION=1.7.2
 readonly KAPP_CONTROLLER_VERSION=0.34.0
 readonly KNATIVE_SERVING_VERSION=1.3.0
 readonly KPACK_VERSION=0.5.2
 readonly SECRETGEN_CONTROLLER_VERSION=0.8.0
 readonly SOURCE_CONTROLLER_VERSION=0.22.4
-readonly CARTOGRAPHER_CONVENTIONS_VERSION=0.1.0-build.1
+readonly CARTOGRAPHER_CONVENTIONS_VERSION=0.1.0-build.3
 
 main() {
         cd $ROOT/hack

@@ -41,32 +41,9 @@ jobs:
           make check
 
 
-      - name: Start cluster and registry, then install dependencies
+      - name: Start cluster and registry, then install
         run: |-
-          ./hack/cluster.sh start apply-dependencies
-
-
-      - name: Create and apply Package objects to the cluster
-        run: |-
-          scratch=$(mktemp -d)
-          bundle=$(./hack/ci/ip.py):5000/bundle
-
-          BUNDLE=$bundle ./hack/bundle.sh
-          kubectl apply -f ./release
-
-
-      - name: Install Package
-        run: |-
-          echo "registry:
-            server: $(./hack/ci/ip.py):5000
-            repository: test
-          " > ootb-values.yaml
-
-          tanzu package install \
-            --package-name ootb-supply-chains.community.tanzu.vmware.com \
-            --values-file ootb-values.yaml \
-            --version 0.0.0 \
-            ootb
+          ./hack/cluster.sh start apply-dependencies apply-ootb
 
 
       - name: Run tests

@@ -1,6 +1,6 @@
-module github.com/cirocosta/ootb-tce
+module github.com/vmware-tanzu/cartographer-catalog
 
-go 1.17
+go 1.18
 
 require github.com/google/addlicense v1.0.0
 
